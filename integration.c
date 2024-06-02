@@ -1,10 +1,15 @@
+#include <errno.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "klib/khash.h"
 #include "klib/kbtree.h"
+
+#include <stdbool.h>
+#include "qp/Tbl.h"
 
 
 // Define the hashmap with char* keys and long values
@@ -64,7 +69,28 @@ ssize_t max_word_frequency_kbtree(const char* words[], size_t len)
     return max_freq;
 }
 
+ssize_t max_word_frequency_qptrie(const char* words[], size_t len) {
+    Tbl *table = NULL;
+    for (size_t i = 0; i < len; ++i) {
+        size_t key_len = strlen(words[i]);
+        // Abuse the fact that Tget returns NULL on missing key...
+        ssize_t val = (ssize_t) Tgetl(table, words[i], key_len);
+        // Val must be word aligned, so we increase the counter by sizeof(size_t)
+        table = Tsetl(table, words[i], key_len, (void*) (val + sizeof(size_t)));
+    }
+
+    ssize_t max_freq = 0;
+    const char* key = NULL;
+    void* val = NULL;
+    while(Tnext(table, &key, &val)) {
+        ssize_t freq = (ssize_t) Tget(table, key); 
+        max_freq = (max_freq > freq) ? max_freq : freq;
+    }
+    return max_freq / sizeof(size_t);
+}
+
 int main(int argc, const char** argv) {
     printf("%zd\n", max_word_frequency_khash(argv + 1, argc - 1));
     printf("%zd\n", max_word_frequency_kbtree(argv + 1, argc - 1));
+    printf("%zd\n", max_word_frequency_qptrie(argv + 1, argc - 1));
 }
