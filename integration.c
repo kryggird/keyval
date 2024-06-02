@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include "qp/Tbl.h"
 
-
 // Define the hashmap with char* keys and long values
 KHASH_MAP_INIT_STR(klib_hashmap, ssize_t)
 
@@ -89,8 +88,8 @@ ssize_t max_word_frequency_qptrie(const char* words[], size_t len) {
     return max_freq / sizeof(size_t);
 }
 
-int main(int argc, const char** argv) {
-    printf("%zd\n", max_word_frequency_khash(argv + 1, argc - 1));
-    printf("%zd\n", max_word_frequency_kbtree(argv + 1, argc - 1));
-    printf("%zd\n", max_word_frequency_qptrie(argv + 1, argc - 1));
-}
+// int main(int argc, const char** argv) {
+//     printf("%zd\n", max_word_frequency_khash(argv + 1, argc - 1));
+//     printf("%zd\n", max_word_frequency_kbtree(argv + 1, argc - 1));
+//     printf("%zd\n", max_word_frequency_qptrie(argv + 1, argc - 1));
+// }
