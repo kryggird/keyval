@@ -5,7 +5,7 @@ FLAGS=-Wall -std=c++17 -O3 -g -march=skylake -DNDEBUG
 # 	$(CC) $(C_FLAGS) $< fn.o Tbl.o -o $@
 
 run_nb: benchmark_nb
-	./benchmark_nb
+	./benchmark_nb ./words-zero.bin
 
 integration.o: integration.c 
 	$(CC) -c $(C_FLAGS) $< -o $@
