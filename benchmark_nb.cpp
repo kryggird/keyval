@@ -91,12 +91,12 @@ int main(int argc, char* argv[]) {
     std::geometric_distribution<size_t> geom {};
     size_t NUM_KEYS = 128 * 1024ul;
     
-    run_benchmark("geometric", "dummy", geom, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
+    run_benchmark("geometric", "do nothing", geom, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
     run_benchmark("geometric", "khash", geom, dict, NUM_KEYS, max_word_frequency_khash);
     run_benchmark("geometric", "kbtree", geom, dict, NUM_KEYS, max_word_frequency_kbtree);
     run_benchmark("geometric", "qptrie", geom, dict, NUM_KEYS, max_word_frequency_qptrie);
     
-    run_benchmark("uniform", "dummy", uniform, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
+    run_benchmark("uniform", "do nothing", uniform, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
     run_benchmark("uniform", "khash", uniform, dict, NUM_KEYS, max_word_frequency_khash);
     run_benchmark("uniform", "kbtree", uniform, dict, NUM_KEYS, max_word_frequency_kbtree);
     run_benchmark("uniform", "qptrie", uniform, dict, NUM_KEYS, max_word_frequency_qptrie);
