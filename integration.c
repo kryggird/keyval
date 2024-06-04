@@ -84,7 +84,10 @@ ssize_t max_word_frequency_qptrie(const char* words[], size_t len) {
     while(Tnext(table, &key, &val)) {
         ssize_t freq = (ssize_t) Tget(table, key); 
         max_freq = (max_freq > freq) ? max_freq : freq;
+
+        table = Tset(table, key, NULL);
     }
+
     return max_freq / sizeof(size_t);
 }
 

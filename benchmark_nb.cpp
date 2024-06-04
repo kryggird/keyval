@@ -21,36 +21,37 @@ extern "C" {
     ssize_t max_word_frequency_qptrie(const char *const words[], size_t len);
 }
 
-auto prepare_random_input(const std::vector<const char*>& dictionary,  size_t output_size)
+template <typename Engine, typename Dist>
+auto prepare_random_input(Engine& engine, Dist& dist, const std::vector<const char*>& dictionary,  size_t output_size)
 {
-    using namespace std;
-    random_device random_device {};
-    mt19937 random_engine {random_device()};
-    random_engine.seed(42);
 
-    uniform_int_distribution<size_t> rand_geom {};
-    //geometric_distribution<size_t> rand_geom {};
-
-    vector<const char*> res {};
+    std::vector<const char*> res {};
     res.reserve(output_size);
 
     for (size_t i=0; i < output_size; i++) {
-        const char* w = dictionary[rand_geom(random_engine) % dictionary.size()];
+        const char* w = dictionary[dist(engine) % dictionary.size()];
         res.push_back(w);
     }
 
     return res;
 }
 
-template <typename F>
+template <typename Dist, typename F>
 void run_benchmark(const char* title, 
                    const char* name,
-                   const std::vector<const char*>& words,
+                   Dist dist,
+                   const std::vector<const char*>& dictionary,
+                   size_t output_size,
                    F func) {
     using namespace ankerl::nanobench;
+    using namespace std;
+    random_device random_device {};
+    mt19937 random_engine {random_device()};
+    random_engine.seed(42);
 
-    Bench().title(title).minEpochIterations(128ul)
-           .run(name, [&words, func]() {
+    Bench().title(title).minEpochIterations(32ul)
+           .run(name, [&random_engine, &dist, &dictionary, output_size, func]() {
+        auto words = prepare_random_input(random_engine, dist, dictionary, output_size);
         auto res = func(words.data(), words.size());
 
         doNotOptimizeAway(res);
@@ -84,12 +85,21 @@ int main(int argc, char* argv[]) {
     if (argc != 2) { return 1; }
     auto buf = buffer_from_file(argv[1]);
     auto dict = lines_from_buffer(buf);
-    auto words = prepare_random_input(dict, 8 * 1024ul);
+    //auto words = prepare_random_input(dict, 8 * 1024ul);
     
-    run_benchmark("small dict", "do nothing", words, [](auto a1, auto a2) { return 0; });
-    run_benchmark("small dict", "khash", words, max_word_frequency_khash);
-    run_benchmark("small dict", "kbtree", words, max_word_frequency_kbtree);
-    run_benchmark("small dict", "qptrie", words, max_word_frequency_qptrie);
+    std::uniform_int_distribution<size_t> uniform {};
+    std::geometric_distribution<size_t> geom {};
+    size_t NUM_KEYS = 128 * 1024ul;
+    
+    run_benchmark("geometric", "dummy", geom, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
+    run_benchmark("geometric", "khash", geom, dict, NUM_KEYS, max_word_frequency_khash);
+    run_benchmark("geometric", "kbtree", geom, dict, NUM_KEYS, max_word_frequency_kbtree);
+    run_benchmark("geometric", "qptrie", geom, dict, NUM_KEYS, max_word_frequency_qptrie);
+    
+    run_benchmark("uniform", "dummy", uniform, dict, NUM_KEYS, [](auto a1, auto a2) { return 0; });
+    run_benchmark("uniform", "khash", uniform, dict, NUM_KEYS, max_word_frequency_khash);
+    run_benchmark("uniform", "kbtree", uniform, dict, NUM_KEYS, max_word_frequency_kbtree);
+    run_benchmark("uniform", "qptrie", uniform, dict, NUM_KEYS, max_word_frequency_qptrie);
 
     return EXIT_SUCCESS;
 }
